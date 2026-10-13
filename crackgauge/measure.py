@@ -42,13 +42,20 @@ def widths(mask: np.ndarray, min_length_px: int = 20) -> Widths | None:
     return Widths(float(w.max()), float(np.percentile(w, 90)), float(np.median(w)), int(centre.sum()), centre, width_map)
 
 
-def fill_holes(m: np.ndarray) -> np.ndarray:
-    """On wide cracks the model can trace both edges and leave the dark middle out. Fill anything enclosed."""
+def fill_holes(m: np.ndarray, max_half_width_px: float = 16.0) -> np.ndarray:
+    """On wide cracks the model can trace both edges and leave the dark middle out. Fill enclosed gaps that are
+    narrow like a crack; a big island of concrete between two branching cracks is left alone."""
     closed = cv2.morphologyEx(m, cv2.MORPH_CLOSE, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5)))
     flood = np.pad(closed, 1).copy()
     cv2.floodFill(flood, None, (0, 0), 1)
-    holes = flood[1:-1, 1:-1] == 0
-    return ((closed > 0) | holes).astype(np.uint8)
+    holes = (flood[1:-1, 1:-1] == 0).astype(np.uint8)
+    depth = cv2.distanceTransform(holes, cv2.DIST_L2, 5)
+    n, lab = cv2.connectedComponents(holes, connectivity=8)
+    out = closed > 0
+    for i in range(1, n):
+        if depth[lab == i].max() <= max_half_width_px:
+            out |= lab == i
+    return out.astype(np.uint8)
 
 
 def refine_mask(img_bgr: np.ndarray, mask: np.ndarray, band_px: int = 6) -> np.ndarray:
@@ -79,7 +86,16 @@ def find_coin(img_bgr: np.ndarray) -> tuple[int, int, int] | None:
     if circles is None:
         return None
     x, y, r = circles[0][0]
-    return refine_circle(img_bgr, x, y, r)
+    coin = refine_circle(img_bgr, x, y, r)
+    # Hough always offers some circle, even on bare concrete: a real coin has an edge most of the way round
+    return coin if rim_coverage(colour_edges(img_bgr), *coin) >= 0.6 else None
+
+
+def rim_coverage(edges: np.ndarray, x: float, y: float, r: float) -> float:
+    """Fraction of the circle's circumference (in 5 degree steps) that has an edge pixel on it."""
+    ys, xs = np.nonzero(edges)
+    on = np.abs(np.hypot(xs - x, ys - y) - r) < 2.5
+    return np.unique(np.round(np.degrees(np.arctan2(ys[on] - y, xs[on] - x)) / 5)).size / 72
 
 
 def colour_edges(img_bgr: np.ndarray) -> np.ndarray:

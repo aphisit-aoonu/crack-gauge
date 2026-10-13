@@ -21,18 +21,21 @@ WEB = Path(__file__).resolve().parent.parent / "web"
 MAX_SIDE = 2048
 
 
-def overlay(img: np.ndarray, mask: np.ndarray, width_map: np.ndarray | None, coin) -> np.ndarray:
-    """Crack in red, widest stretch highlighted, coin outlined."""
+def overlay(img: np.ndarray, mask: np.ndarray, coin) -> np.ndarray:
+    """Whole crack in red inside a bright outline, coin outlined."""
     out = img.copy()
+    t = max(2, round(max(img.shape[:2]) / 400))        # line weight that stays visible on large photos
+    # a measured crack is often 1-3 px wide, too thin to see: give the whole length a halo
+    k = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (4 * t + 1, 4 * t + 1))
+    halo = cv2.dilate((mask > 0).astype(np.uint8), k)
     tint = out.copy()
-    tint[mask > 0] = (40, 40, 230)
-    out = cv2.addWeighted(tint, 0.75, out, 0.25, 0)
-    if width_map is not None and width_map.max() > 0:
-        y, x = np.unravel_index(np.argmax(width_map), width_map.shape)
-        r = max(12, int(width_map.max() * 2))
-        cv2.circle(out, (int(x), int(y)), r, (0, 220, 255), 3)
+    tint[halo > 0] = (40, 40, 230)
+    out = cv2.addWeighted(tint, 0.45, out, 0.55, 0)
+    out[mask > 0] = (30, 30, 255)
+    contours, _ = cv2.findContours(halo, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+    cv2.drawContours(out, contours, -1, (0, 220, 255), t)
     if coin:
-        cv2.circle(out, coin[:2], coin[2], (90, 230, 90), 3)
+        cv2.circle(out, coin[:2], coin[2], (90, 230, 90), t + 1)
     return out
 
 
@@ -59,7 +62,7 @@ def analyse(img: np.ndarray, seg: Segmenter) -> dict:
             result.update(mm_per_px=round(scale, 4), max_mm=round(wd.max_px * scale, 2), p90_mm=round(p90_mm, 2),
                           median_mm=round(wd.median_px * scale, 2), length_mm=round(wd.length_px * scale),
                           category=code, category_en=en, category_th=th)
-    vis = overlay(img, mask, wd.width_map if wd else None, coin)
+    vis = overlay(img, mask, coin)
     ok, buf = cv2.imencode(".jpg", vis, [cv2.IMWRITE_JPEG_QUALITY, 88])
     result["image"] = "data:image/jpeg;base64," + base64.b64encode(buf.tobytes()).decode()
     return result

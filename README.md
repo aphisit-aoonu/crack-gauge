@@ -41,10 +41,14 @@ with a coin-sized disc for scale. 40 cases, full pipeline from photo to millimet
 
 | True width | 0.87 mm | 1.30 mm | 1.95 mm | 3.03 mm | 4.33 mm |
 |---|---|---|---|---|---|
-| Measured (mean) | 1.05 | 1.38 | 1.99 | 3.10 | 4.34 |
+| Measured (mean) | 1.04 | 1.38 | 1.94 | 3.02 | 4.25 |
 
-Mean absolute error **0.16 mm**. Without the edge-tightening step it was 0.76 mm. This is a
-synthetic check: it tests the measuring, not how well the model sees unusual real cracks.
+Millimetres were given in 20 of the 40 cases, with a mean absolute error of **0.08 mm**. In the
+other 20 the grey disc was too close to the concrete in colour for its rim to be found, and the app
+now refuses to give millimetres rather than guess a scale (an earlier version guessed, was about 10%
+off on those, and averaged 0.16 mm over all 40). Without the edge-tightening step the error is
+0.85 mm. This is a synthetic check: it tests the measuring, not how well the model sees unusual
+real cracks.
 
 ![Width check](docs/width_check.jpg)
 
@@ -59,6 +63,11 @@ synthetic check: it tests the measuring, not how well the model sees unusual rea
   measured 1.8 mm. Filling enclosed holes fixed it. There is a test for it now.
 - Hough on its own put the coin radius about 10% off, which goes straight into the millimetres.
   Re-fitting to the rim fixed that.
+- Hough also offers a circle on bare concrete. One example photo got a "coin" that was not there,
+  which erased the cracks inside it and reported made-up millimetres. A coin now has to have an
+  edge at least 60% of the way round its rim.
+- The web app marked only the widest point, and the traced line was 1–3 px wide, so on a real
+  photo it looked like one small circle on a long crack. The whole crack now gets a halo and outline.
 
 ## Run it
 

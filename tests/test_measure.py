@@ -83,3 +83,20 @@ def test_two_tone_coin_uses_the_outer_rim():
     cv2.circle(img, (300, 300), 70, (70, 150, 190), -1)
     cv2.circle(img, (300, 300), 49, (185, 190, 192), -1)
     assert find_coin(img)[2] == pytest.approx(70, abs=3)
+
+
+def test_no_coin_is_reported_on_a_faint_arc():
+    # Hough will offer a circle for a partial arc; a coin needs an edge most of the way round
+    img = np.full((400, 400, 3), 170, np.uint8)
+    cv2.ellipse(img, (200, 200), (80, 80), 0, 0, 60, (60, 60, 60), 2)
+    assert find_coin(img) is None
+
+
+def test_island_between_two_cracks_is_not_filled():
+    from crackgauge.measure import fill_holes
+    m = np.zeros((300, 300), np.uint8)
+    cv2.ellipse(m, (150, 150), (100, 60), 0, 0, 360, 1, 3)      # two branches around a patch of concrete
+    assert fill_holes(m)[150, 150] == 0
+    thin = np.zeros((300, 300), np.uint8)
+    cv2.rectangle(thin, (50, 140), (250, 160), 1, 2)             # hollow middle of one wide crack
+    assert fill_holes(thin)[150, 150] == 1
