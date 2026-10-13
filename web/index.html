@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Crack Gauge</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="top">
+  <div class="brand">
+    <svg class="logo" viewBox="0 0 36 36" aria-hidden="true"><rect width="36" height="36" rx="10" fill="#1d2733"/><path d="M10 6l6 9-4 5 7 10" stroke="#ff5a4f" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/><circle cx="26" cy="12" r="5" fill="none" stroke="#7fe08a" stroke-width="2.2"/></svg>
+    <div><h1 data-t="title"></h1><p class="sub" data-t="sub"></p></div>
+  </div>
+  <button class="lang" id="lang" type="button">ไทย</button>
+</header>
+
+<main class="wrap">
+  <section class="left">
+    <label class="drop" id="drop">
+      <input type="file" id="file" accept="image/*" hidden>
+      <div class="drop-inner" id="dropInner">
+        <div class="big" data-t="drop"></div>
+        <div class="muted" data-t="hint"></div>
+      </div>
+      <img id="preview" alt="" hidden>
+      <div class="busy" id="busy" hidden><span></span></div>
+    </label>
+    <div class="examples">
+      <span class="muted" data-t="examples"></span>
+      <div id="exampleList"></div>
+      <span class="muted" data-t="coinNote"></span>
+    </div>
+  </section>
+
+  <aside class="right">
+    <div class="card verdict" id="verdict">
+      <div class="label" data-t="verdict"></div>
+      <div class="v-main" id="vMain">–</div>
+      <div class="v-sub" id="vSub"></div>
+    </div>
+    <div class="grid">
+      <div class="card stat"><div class="num" id="sWidth">–</div><div class="muted" data-t="width"></div></div>
+      <div class="card stat"><div class="num" id="sMax">–</div><div class="muted" data-t="max"></div></div>
+      <div class="card stat"><div class="num" id="sLen">–</div><div class="muted" data-t="length"></div></div>
+      <div class="card stat"><div class="num" id="sTime">–</div><div class="muted" data-t="time"></div></div>
+    </div>
+    <div class="card scale">
+      <div class="label" data-t="scaleTitle"></div>
+      <ol class="cats" id="cats"></ol>
+    </div>
+    <div class="card note">
+      <div class="label" data-t="howTitle"></div>
+      <p data-t="how"></p>
+    </div>
+  </aside>
+</main>
+
+<footer class="foot">
+  <span data-t="warn"></span>
+  <span data-t="credit"></span>
+</footer>
+<script src="app.js"></script>
+</body>
+</html>
